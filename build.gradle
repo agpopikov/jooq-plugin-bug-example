@@ -1,0 +1,47 @@
+plugins {
+//    with this version of spring boot plugin all works fine (./gradlew generateJooqClasses)
+//    id 'org.springframework.boot' version '2.2.7.RELEASE'
+
+//    but with this version of spring boot plugin task fails / stuck (./gradlew generateJooqClasses)
+    id 'org.springframework.boot' version '2.3.0.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'java'
+    id 'com.revolut.jooq-docker' version '0.3.3'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation("org.jooq:jooq:3.13.1")
+    jdbc("org.postgresql:postgresql:42.2.5")
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks {
+    generateJooqClasses {
+        schemas = ["public"]
+        basePackageName = "com.example.demo.generated"
+        inputDirectory.setFrom(project.files("src/main/resources/db/migration"))
+        outputDirectory.set(project.layout.buildDirectory.dir("generated-jooq"))
+        flywayProperties = ["flyway.placeholderReplacement": "false"]
+        excludeFlywayTable = true
+        outputSchemaToDefault = ["public"]
+        customizeGenerator {
+
+        }
+    }
+}
